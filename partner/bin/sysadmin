@@ -744,5 +744,18 @@ if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     _sysadmin_bind_pending "${_sa_argv[1]:-}"
     exit $?
   fi
+  # PLUGIN DIVERGENCE (DIVE-5247): the seat verbs re-exec through `sudo -n`. A
+  # caller with no grant got sudo's own "a password is required" on stderr and
+  # nothing on stdout, so a --json caller had no envelope to parse. Ask sudo
+  # first (-l runs nothing) for the exact command _sysadmin_call would run, and
+  # refuse through `fail` when it is not granted.
+  case "${_sa_argv[0]:-}" in
+    read|restart|propose|status)
+      if ! _sysadmin_is_root; then
+        _sa_j=(); (( JSON_MODE )) && _sa_j=(--json)
+        sudo -n -l "$(_sysadmin_self)" "${_sa_j[@]}" sysadmin _broker >/dev/null 2>&1 \
+          || fail "$E_PERMISSION" "5dive sysadmin ${_sa_argv[0]} runs as the sysadmin seat (its one sudo grant) or root — this caller has neither"
+      fi ;;
+  esac
   cmd_sysadmin "${_sa_argv[@]+"${_sa_argv[@]}"}"
 fi

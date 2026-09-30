@@ -288,9 +288,20 @@ out=$( STATE_DIR="$L" SYSADMIN_AUDIT_SINK="$L/audit" FIVEDIVE_JSON_MODE=1 bash "
   && [[ "$(jq -r '.cmd, .code, .via' "$L/audit" 2>/dev/null | tr '\n' ' ')" == "sysadmin _broker 10 partner-plugin " ]] \
   && ok_t "l2 executed: FIVEDIVE_JSON_MODE gives core's envelope and code, and the outcome is audited as 'sysadmin _broker'" \
   || bad_t "l2 executed broker" "rc=$rc $out | $(cat "$L/audit" 2>/dev/null)"
-out=$( STATE_DIR="$L" SYSADMIN_AUDIT_SINK="$L/audit2" bash "$SA" --json status 2>/dev/null | head -c 400 ); rc=$?
-[[ "$(jq -r '.ok' <<<"$out" 2>/dev/null)" == false || "$(jq -r '.ok' <<<"$out" 2>/dev/null)" == true ]] \
-  && ok_t "l3 a --json left in argv is stripped and honoured (JSON on stdout)" || bad_t "l3 --json in argv" "$out"
+# l3 must not depend on the grading seat's own sudo (iteration 1 passed only
+# where sudo was passwordless): a PATH sudo that refuses, the way sudo -n does
+# for a caller with no grant. A non-root caller has to get core's envelope.
+mkdir -p "$L/nosudo"; printf '#!/bin/sh\necho "sudo: a password is required" >&2; exit 1\n' > "$L/nosudo/sudo"; chmod +x "$L/nosudo/sudo"
+if [[ $EUID -ne 0 ]]; then
+  out=$( PATH="$L/nosudo:$PATH" STATE_DIR="$L" SYSADMIN_AUDIT_SINK="$L/audit2" bash "$SA" --json status 2>/dev/null ); rc=$?
+  (( rc == 10 )) && [[ "$(jq -r '.ok, .error.class' <<<"$out" 2>/dev/null | tr '\n' ' ')" == "false permission " ]] \
+    && ok_t "l3 a --json left in argv is honoured: a caller sudo refuses gets core's envelope, code 10" || bad_t "l3 --json in argv, no grant" "rc=$rc $out"
+else
+  printf 'SKIP - l3 is the no-grant refusal (running as root)\n'
+fi
+out=$( STATE_DIR="$L" SYSADMIN_AUDIT_SINK="$L/audit2b" bash "$SA" --json frobnicate 2>/dev/null ); rc=$?
+(( rc == 2 )) && [[ "$(jq -r '.ok, .error.class' <<<"$out" 2>/dev/null | tr '\n' ' ')" == "false usage " ]] \
+  && ok_t "l3b a --json left in argv on a verb that never escalates gives the usage envelope" || bad_t "l3b --json usage" "rc=$rc $out"
 printf '{"agents":{"sysadmin":{"type":"claude","pendingAuthProfile":"openrouter"}}}\n' > "$L/agents.json"
 ( STATE_DIR="$L" SYSADMIN_AUDIT_SINK="$L/audit3" FIVEDIVE_SELF_BIN="$TMP/fake5dive" bash "$SA" _bind-pending openrouter ) >/dev/null 2>&1; rc=$?
 if [[ $EUID -ne 0 ]]; then
