@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "5dive-partner",
+  "description": "The 5dive partner-box plugin, published from its own repository. Installed by the partner box profile only; a regular 5dive box does not carry it.",
+  "owner": {
+    "name": "5dive",
+    "email": "support@5dive.com"
+  },
+  "plugins": [
+    {
+      "name": "partner",
+      "description": "A partner box's privileged work behind the owner's tap: one sysadmin seat whose only root grant is a broker that reads, restarts, and proposes root scripts the client approves on Telegram.",
+      "category": "operations",
+      "source": "./partner",
+      "homepage": "https://github.com/5dive-ai/5dive-partner"
+    }
+  ]
+}

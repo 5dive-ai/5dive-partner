@@ -1,0 +1,35 @@
+{
+  "name": "partner",
+  "version": "1.0.0",
+  "description": "Partner-box administration: the sysadmin seat and its root broker. Every system change waits for the client's Approve on the partner's Telegram bot and runs in a root sandbox that cannot read the box's secrets.",
+  "author": {
+    "name": "5dive",
+    "email": "support@5dive.com",
+    "url": "https://5dive.ai"
+  },
+  "homepage": "https://github.com/5dive-ai/5dive-partner",
+  "license": "Apache-2.0",
+  "keywords": [
+    "partner",
+    "sysadmin",
+    "root",
+    "approval"
+  ],
+  "fivedive": {
+    "contract": "1",
+    "capabilities": [
+      "verb"
+    ],
+    "verbs": [
+      {
+        "name": "sysadmin",
+        "summary": "a partner box's privileged work: read, restart, and propose root scripts behind the owner's tap"
+      }
+    ],
+    "trust": {
+      "publisher": "5dive",
+      "did": "did:key:5dive",
+      "review": "official"
+    }
+  }
+}
