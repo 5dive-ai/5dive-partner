@@ -1,0 +1,29 @@
+name: partner plugin
+
+# The whole repo is one plugin, so there is no path filter to get wrong.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  harness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: tools the harness needs
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq jq openssl >/dev/null
+      # A manifest that does not parse breaks `5dive plugin add` at install time,
+      # where nobody is watching; the name/folder/source triple is trap D.
+      - name: manifests parse, and name = folder = marketplace source
+        run: |
+          jq -e . .claude-plugin/marketplace.json > /dev/null
+          jq -e . partner/.claude-plugin/plugin.json > /dev/null
+          test "$(jq -r .name partner/.claude-plugin/plugin.json)" = partner
+          test "$(jq -r '.plugins[]|select(.name=="partner")|.source' .claude-plugin/marketplace.json)" = ./partner
+          test -x partner/bin/sysadmin
+          bash -n partner/bin/sysadmin
+      # No root, no network. Arm k (the real systemd sandbox) SKIPs here and is
+      # owed on a box; arm j re-runs (h) under each mutant in tests/mutants/.
+      - name: sysadmin harness
+        run: bash tests/sysadmin_unit.sh
