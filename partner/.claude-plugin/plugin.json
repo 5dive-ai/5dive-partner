@@ -1,6 +1,6 @@
 {
   "name": "partner",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Partner-box administration: the sysadmin seat and its root broker. Every system change waits for the client's Approve on the partner's Telegram bot and runs in a root sandbox that cannot read the box's secrets.",
   "author": {
     "name": "5dive",
