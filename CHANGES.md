@@ -1,5 +1,13 @@
 # Changes
 
+## 1.0.1 — 2026-10-04 (DIVE-5514)
+
+- `5dive sysadmin install --type=claude|opencode` (default claude, so every
+  existing call is unchanged). Anthropic blocks Russia, so 5dive-api installs a
+  Russian partner box's seat on opencode; the seat's rules are then also written
+  as `AGENTS.md`, which OpenCode reads, root-owned 0644 beside `CLAUDE.md`. Any
+  other harness is refused before anything is created.
+
 ## 1.0.0 — 2026-09-30 (DIVE-5247)
 
 - `5dive sysadmin` moves out of the core CLI into this plugin. The command, its

@@ -206,7 +206,7 @@ _sysadmin_usage() {
   Root (never a seat's):
   5dive sysadmin answer <sa-id> approve|decline --sha=<hex> [--by=<who>]
                                              the client's tap, as 5dive-api relays it
-  5dive sysadmin install [--auth-profile=<name>]
+  5dive sysadmin install [--type=claude|opencode] [--auth-profile=<name>]
                                              create the seat (idempotent), its broker grant
                                              and its rules; bind it to <name> when that exists
 EOF
@@ -595,15 +595,19 @@ RULES
 }
 
 _sysadmin_install() {
-  local profile="" a
+  local profile="" type="claude" a
   for a in "$@"; do
     case "$a" in
       --auth-profile=*) profile="${a#*=}" ;;
-      *) fail "$E_USAGE" "usage: 5dive sysadmin install [--auth-profile=<name>]" ;;
+      --type=*) type="${a#*=}" ;;
+      *) fail "$E_USAGE" "usage: 5dive sysadmin install [--type=claude|opencode] [--auth-profile=<name>]" ;;
     esac
   done
   _sysadmin_is_root || fail "$E_PERMISSION" "sysadmin install runs as root"
   [[ -z "$profile" || "$profile" =~ ^[a-z][a-z0-9_-]{0,31}$ ]] || fail "$E_VALIDATION" "invalid --auth-profile"
+  # DIVE-5514: a box in a region Anthropic blocks runs its seats on opencode, so
+  # 5dive-api names the harness. Only a harness that reads the rules file below.
+  [[ "$type" == claude || "$type" == opencode ]] || fail "$E_VALIDATION" "invalid --type (claude or opencode)"
   local have_profile=0
   [[ -n "$profile" && -d "${AUTH_PROFILES_DIR}/${profile}" ]] && have_profile=1
 
@@ -614,6 +618,12 @@ _sysadmin_install() {
   _sysadmin_rules > "${SYSADMIN_HOME_DIR}/CLAUDE.md.tmp" && chmod 644 "${SYSADMIN_HOME_DIR}/CLAUDE.md.tmp" \
     && mv -f "${SYSADMIN_HOME_DIR}/CLAUDE.md.tmp" "${SYSADMIN_HOME_DIR}/CLAUDE.md" \
     || fail "$E_GENERIC" "cannot write the sysadmin rules"
+  # OpenCode reads AGENTS.md from the workdir up; the same rules, root-owned too.
+  if [[ "$type" == opencode ]]; then
+    cp -f "${SYSADMIN_HOME_DIR}/CLAUDE.md" "${SYSADMIN_HOME_DIR}/AGENTS.md.tmp" && chmod 644 "${SYSADMIN_HOME_DIR}/AGENTS.md.tmp" \
+      && mv -f "${SYSADMIN_HOME_DIR}/AGENTS.md.tmp" "${SYSADMIN_HOME_DIR}/AGENTS.md" \
+      || fail "$E_GENERIC" "cannot write the sysadmin rules for opencode"
+  fi
   _sysadmin_dir_ensure || fail "$E_GENERIC" "cannot create $SYSADMIN_DIR"
 
   # A warm spare is built before its box has a key: the seat is created
@@ -621,7 +631,7 @@ _sysadmin_install() {
   # through _sysadmin_bind_pending — no second call over the tunnel.
   local created=false bound=false pending=false
   if ! _sysadmin_registered "$SYSADMIN_NAME"; then
-    local -a args=(agent create "$SYSADMIN_NAME" --type=claude --channels=none --isolation=standard
+    local -a args=(agent create "$SYSADMIN_NAME" --type="$type" --channels=none --isolation=standard
                    --no-heartbeat --no-team-bot --workdir="${SYSADMIN_HOME_DIR}/work")
     if (( have_profile )); then args+=("--auth-profile=${profile}"); else args+=(--defer-auth); fi
     mkdir -p "${SYSADMIN_HOME_DIR}/work"
