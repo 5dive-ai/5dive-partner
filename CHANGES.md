@@ -3,8 +3,8 @@
 ## 1.0.1 — 2026-10-04 (DIVE-5514)
 
 - `5dive sysadmin install --type=claude|opencode` (default claude, so every
-  existing call is unchanged). Anthropic blocks Russia, so 5dive-api installs a
-  Russian partner box's seat on opencode; the seat's rules are then also written
+  existing call is unchanged). A partner box in a region Anthropic does not
+  serve has its seat installed on opencode by 5dive-api; the seat's rules are then also written
   as `AGENTS.md`, which OpenCode reads, root-owned 0644 beside `CLAUDE.md`. Any
   other harness is refused before anything is created.
 
