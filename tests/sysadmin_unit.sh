@@ -272,7 +272,7 @@ jq '.agents.sysadmin.authProfile = null' "$REGISTRY" > "$TMP/r" && cp "$TMP/r" "
 out=$( ( JSON_MODE=1 _sysadmin_install --auth-profile=openrouter ) 2>&1 )
 [[ "$(cat "$TMP/self.log")" == 'agent config sysadmin set auth-profile=openrouter' && "$(jq -r .data.bound <<<"$out")" == true ]] \
   && ok_t "i10 an existing unbound seat with the account present is bound by install" || bad_t "i10" "$out"
-# DIVE-5514: a Russian box's seat runs on opencode (Anthropic blocks the region).
+# DIVE-5514: a box in a region Anthropic does not serve runs its seat on opencode.
 printf '{"agents":{}}' > "$REGISTRY"; : > "$TMP/self.log"; rm -f "$SYSADMIN_HOME_DIR/AGENTS.md"
 out=$( ( JSON_MODE=1 _sysadmin_install --type=opencode --auth-profile=openrouter ) 2>&1 ); rc=$?
 (( rc == 0 )) && grep -q -- '^agent create sysadmin --type=opencode --channels=none --isolation=standard --no-heartbeat --no-team-bot --workdir='"$SYSADMIN_HOME_DIR"'/work --auth-profile=openrouter$' "$TMP/self.log" \

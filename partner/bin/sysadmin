@@ -134,7 +134,7 @@ _sysadmin_audit_exit() {
 # ==================== carried: core src/cmd_sysadmin.sh @ 2fa23787 ====================
 # -------- 5dive sysadmin — the box's privileged work, behind the owner's tap (DIVE-5187) --------
 #
-# THE GAP. A persona agent on a partner box (OINOA's maya) is a standard seat: no
+# THE GAP. A persona agent on a partner box (the partner's maya) is a standard seat: no
 # sudo, no own services, no config edits. A client asking for "a shared plan page
 # my wife and I both edit" got "I don't have the access". Giving every persona
 # sudo was refused: each one reads untrusted content (its bot's chat, web pages,
