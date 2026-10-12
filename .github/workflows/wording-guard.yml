@@ -8,6 +8,8 @@ on:
     types: [opened, edited, synchronize, reopened]
   push:
     branches: [main]
+  # A run that failed on a workflow-file issue cannot be retried; this re-runs it by hand.
+  workflow_dispatch:
 
 permissions:
   contents: read
