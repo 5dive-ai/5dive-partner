@@ -1,5 +1,13 @@
 # Changes
 
+## 1.0.2 — 2026-10-20 (DIVE-6635)
+
+- A proposed script that runs a `5dive` command is refused before the owner is
+  asked. An approved script runs with the 5dive data hidden, so such a command
+  could only fail: an approved voice-model change died as `unknown command:
+  voice`. The seat's rules now say a 5dive setting needs an admin agent, and that
+  nobody is ever told to run a terminal command.
+
 ## 1.0.1 — 2026-10-04 (DIVE-5514)
 
 - `5dive sysadmin install --type=claude|opencode` (default claude, so every
