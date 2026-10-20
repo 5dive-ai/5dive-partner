@@ -115,10 +115,18 @@ declare -A BAD=(
   [base64]='echo Y2F0IC9ldGMvNWRpdmUK | base64 -d | sh'
   [hex]=$'printf "\\x2fetc" | sh'
   [dotenv]='cat /srv/app/.env'
+  [voice]='5dive voice model set tts-2'
+  [voicepath]='/usr/local/bin/5dive --json voice status'
 )
 for k in "${!BAD[@]}"; do
   why=$(_sysadmin_lint "${BAD[$k]}") && bad_t "a2 lint passed the $k script" "${BAD[$k]}" || ok_t "a2 $k refused ($why)"
 done
+# DIVE-6635: a 5dive command is refused with the reason that names why, and a
+# path or package that merely contains the word is not.
+why=$(_sysadmin_lint '5dive voice model set tts-2') ; grep -q 'never runs in an approved script' <<<"$why" \
+  && ok_t "a3 a 5dive command is refused as one" || bad_t "a3 5dive command reason" "$why"
+_sysadmin_lint 'mkdir -p /srv/sites/maya/5dive-notes && cp x.5dive /srv/apps/5dive_x/' >/dev/null \
+  && ok_t "a4 a path that contains 5dive passes" || bad_t "a4 5dive in a path refused" "$(_sysadmin_lint 'mkdir -p /srv/sites/maya/5dive-notes')"
 
 echo "# (b) only the sysadmin seat reaches the broker"
 CALLER=agent-maya
